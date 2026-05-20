@@ -27,7 +27,11 @@
         version: 2.2.224
         -->
         <!-- ▼ ВАШ КОД ЗДЕСЬ ▼ -->
-
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+        </dependency>
         <!-- ▲ КОНЕЦ ВАШЕГО КОДА ▲ -->
 
         <!-- 
@@ -37,7 +41,11 @@
         version: 6.4.0.Final
         -->
         <!-- ▼ ВАШ КОД ЗДЕСЬ ▼ -->
-
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.4.0.Final</version>
+        </dependency>
         <!-- ▲ КОНЕЦ ВАШЕГО КОДА ▲ -->
     </dependencies>
 
