@@ -1,5 +1,6 @@
 package com.movies;
 
+import com.movies.p4_3.HibernateExtra;
 import jakarta.persistence.*;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -13,52 +14,6 @@ import java.util.List;
  * Учебное задание: Hibernate - работа с сущностями
  */
 
-// ==================== Сущность Movie (уже реализована) ====================
-@Entity
-@Table(name = "movies")
-class Movie {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "title", nullable = false)
-    private String title;
-    
-    @Column(name = "genre")
-    private String genre;
-    
-    @Column(name = "release_year")
-    private Integer year;
-    
-    // Конструкторы
-    public Movie() {}
-    
-    public Movie(String title, String genre, Integer year) {
-        this.title = title;
-        this.genre = genre;
-        this.year = year;
-    }
-    
-    // Геттеры и сеттеры
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-    
-    public String getGenre() { return genre; }
-    public void setGenre(String genre) { this.genre = genre; }
-    
-    public Integer getYear() { return year; }
-    public void setYear(Integer year) { this.year = year; }
-    
-    @Override
-    public String toString() {
-        return String.format("Movie{id=%d, title='%s', genre='%s', year=%d}",
-            id, title, genre, year);
-    }
-}
-
 // ==================== Основной класс ====================
 public class MovieHibernate {
     
@@ -67,16 +22,8 @@ public class MovieHibernate {
     public MovieHibernate() {
         // Конфигурация Hibernate (programmatic, без XML)
         this.sessionFactory = new Configuration()
-            .addAnnotatedClass(Movie.class)
-            .setProperty("hibernate.connection.driver_class", "org.h2.Driver")
-            .setProperty("hibernate.connection.url", "jdbc:h2:mem:moviedb_hibernate")
-            .setProperty("hibernate.connection.username", "sa")
-            .setProperty("hibernate.connection.password", "")
-            .setProperty("hibernate.dialect", "org.hibernate.dialect.H2Dialect")
-            .setProperty("hibernate.hbm2ddl.auto", "create-drop")
-            .setProperty("hibernate.show_sql", "true")
-            .setProperty("hibernate.format_sql", "true")
-            .buildSessionFactory();
+                .configure("hibernate.cfg.xml")
+                .buildSessionFactory();
     }
     
     public static void main(String[] args) {
@@ -97,10 +44,10 @@ public class MovieHibernate {
             // 4. "Темный рыцарь", "action", 2008
             
             // ▼ ВАШ КОД ЗДЕСЬ ▼
-            app.saveMovie(session, new Movie("Матрица", "sci-fi", 1999));
-            app.saveMovie(session, new Movie("Начало", "sci-fi", 2010));
-            app.saveMovie(session, new Movie("Крестный отец", "crime", 1972));
-            app.saveMovie(session, new Movie("Темный рыцарь", "action", 2008));
+            app.saveMovie(session, new MovieEntity("Матрица", "sci-fi", 1999));
+            app.saveMovie(session, new MovieEntity("Начало", "sci-fi", 2010));
+            app.saveMovie(session, new MovieEntity("Крестный отец", "crime", 1972));
+            app.saveMovie(session, new MovieEntity("Темный рыцарь", "action", 2008));
             // ▲ КОНЕЦ ВАШЕГО КОДА ▲
             
             tx.commit();
@@ -114,14 +61,14 @@ public class MovieHibernate {
             
             // Демонстрация других операций
             System.out.println("\n=== Все фильмы ===");
-            List<Movie> allMovies = session.createQuery("FROM Movie", Movie.class).list();
+            List<MovieEntity> allMovies = session.createQuery("FROM MovieEntity", MovieEntity.class).list();
             allMovies.forEach(System.out::println);
             
             // Обновление
             System.out.println("\n=== Обновление фильма ===");
             tx = session.beginTransaction();
             if (!allMovies.isEmpty()) {
-                Movie first = allMovies.get(0);
+                MovieEntity first = allMovies.get(0);
                 app.updateMovie(session, first.getId(), "Матрица (Обновлено)", "sci-fi", 1999);
             }
             tx.commit();
@@ -136,8 +83,17 @@ public class MovieHibernate {
             
             // Итоговый список
             System.out.println("\n=== Итоговый список фильмов ===");
-            List<Movie> finalMovies = session.createQuery("FROM Movie", Movie.class).list();
+            List<MovieEntity> finalMovies = session.createQuery("FROM MovieEntity", MovieEntity.class).list();
             finalMovies.forEach(System.out::println);
+
+            System.out.println("\n=== Страница 1 (3 фильма) ===");
+            HibernateExtra.findPage(session.getSessionFactory(), 1, 3).forEach(System.out::println);
+
+            System.out.println("\n=== Страница 2 (3 фильма) ===");
+            HibernateExtra.findPage(session.getSessionFactory(), 2, 3).forEach(System.out::println);
+
+            System.out.println("\n=== Агрегация ===");
+            HibernateExtra.runAggregationQueries(session.getSessionFactory());
             
             session.close();
             
@@ -151,7 +107,7 @@ public class MovieHibernate {
      * Используйте session.persist(movie) для сохранения
      * Не забудьте, что транзакция уже начата в main()
      */
-    public void saveMovie(Session session, Movie movie) {
+    public void saveMovie(Session session, MovieEntity movie) {
         // ▼ ВАШ КОД ЗДЕСЬ ▼
         session.persist(movie);
         // ▲ КОНЕЦ ВАШЕГО КОДА ▲
@@ -163,10 +119,10 @@ public class MovieHibernate {
      * Используйте session.createQuery() и setParameter()
      * Верните List<Movie>
      */
-    public List<Movie> findMoviesByGenre(Session session, String genre) {
+    public List<MovieEntity> findMoviesByGenre(Session session, String genre) {
         // ▼ ВАШ КОД ЗДЕСЬ ▼
-        String hql = "FROM Movie m WHERE m.genre = :genre";
-        return session.createQuery(hql, Movie.class)
+        String hql = "FROM MovieEntity m WHERE m.genre = :genre";
+        return session.createQuery(hql, MovieEntity.class)
                 .setParameter("genre", genre)
                 .getResultList();
         // ▲ КОНЕЦ ВАШЕГО КОДА ▲
@@ -175,7 +131,7 @@ public class MovieHibernate {
     // ==================== Методы уже реализованы ниже ====================
     
     public void updateMovie(Session session, Long id, String title, String genre, Integer year) {
-        Movie movie = session.get(Movie.class, id);
+        MovieEntity movie = session.get(MovieEntity.class, id);
         if (movie != null) {
             movie.setTitle(title);
             movie.setGenre(genre);
@@ -186,7 +142,7 @@ public class MovieHibernate {
     }
     
     public void deleteMovie(Session session, Long id) {
-        Movie movie = session.get(Movie.class, id);
+        MovieEntity movie = session.get(MovieEntity.class, id);
         if (movie != null) {
             session.remove(movie);
             System.out.println("Удален фильм: " + movie.getTitle());

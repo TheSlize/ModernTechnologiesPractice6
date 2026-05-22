@@ -1,0 +1,25 @@
+=== Страница 1 (3 фильма) ===
+Hibernate: select me1_0.id,me1_0.genre,me1_0.title,me1_0.release_year from movies me1_0 order by me1_0.id offset ? rows fetch first ? rows only
+Movie{id=1, title='Матрица (Обновлено)', genre='sci-fi', year=1999}
+Movie{id=3, title='Крестный отец', genre='crime', year=1972}
+Movie{id=4, title='Темный рыцарь', genre='action', year=2008}
+
+=== Страница 2 (3 фильма) ===
+Hibernate: select me1_0.id,me1_0.genre,me1_0.title,me1_0.release_year from movies me1_0 order by me1_0.id offset ? rows fetch first ? rows only
+
+=== Агрегация ===
+=== Количество фильмов по жанрам ===
+Hibernate: select me1_0.genre,count(*) from movies me1_0 group by me1_0.genre
+action: 1
+crime: 1
+sci-fi: 1
+
+=== Средний год выхода ===
+Hibernate: select avg(cast(me1_0.release_year as float(53))) from movies me1_0
+Средний год: 1993,0
+
+=== Новейший фильм каждого жанра ===
+Hibernate: select me1_0.genre,max(me1_0.release_year) from movies me1_0 group by me1_0.genre
+action: 2008
+crime: 1972
+sci-fi: 1999
